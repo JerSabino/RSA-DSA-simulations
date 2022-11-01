@@ -139,7 +139,7 @@ public class RSA {
         return (a.add(b)).mod(vals[6]); //(a + b) mod n
     }
 
-    //HELPER METHODS
+    //HELPER METHODS -----------------------------------------------------------
     /*
      * Generates an e such that e * d mod phi = 1
      */
@@ -155,17 +155,6 @@ public class RSA {
         }
 
         return e;
-    }
-
-    /*
-     * Generates a d such that e * d mod phi = 1
-     */
-    public static BigInteger[] generateD(BigInteger a, BigInteger b){
-        if(b.equals(BigInteger.ZERO)){
-            return new BigInteger[] {a, BigInteger.ONE, BigInteger.ZERO};
-        }
-        BigInteger[] v = generateD(b, a.mod(b));
-        return new BigInteger[]{v[0], v[2], v[1].subtract(a.divide(b).multiply(v[2]))};
     }
 
     /*
@@ -196,6 +185,7 @@ public class RSA {
         return message;
     }
 
+    //KEYS --------------------------------------------------------------------
     /* 
      *  Public Key = (e, n)
      */
