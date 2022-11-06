@@ -1,32 +1,38 @@
+/*
+ * CS4355 Programming Assignment 1
+ * This code is a simulation of RSA encryption/decryption process.
+ * Simply run by running the 'main' portion of this code. 
+ * 
+ * @author Jeremiah Sabino - 3621717
+ */
 import java.util.*;
 import java.math.BigInteger;
 
 public class RSA {
 
+    //Large primes
+    private static BigInteger p = new BigInteger("19211916981990472618936322908621863986876987146317321175477459636156953561475008733870517275438245830106443145241548501528064000686696553079813968930084003413592173929258239545538559059522893001415540383237712787805857248668921475503029012210091798624401493551321836739170290569343885146402734119714622761918874473987849224658821203492683692059569546468953937059529709368583742816455260753650612502430591087268113652659115398868234585603351162620007030560547611");
+    private static BigInteger q = new BigInteger("49400957163547757452528775346560420645353827504469813702447095057241998403355821905395551250978714023163401985077729384422721713135644084394023796644398582673187943364713315617271802772949577464712104737208148338528834981720321532125957782517699692081175107563795482281654333294693930543491780359799856300841301804870312412567636723373557700882499622073341225199446003974972311496703259471182056856143760293363135470539860065760306974196552067736902898897585691");
+
+    //Composite modulus
+    private static BigInteger n = p.multiply(q);
+
+    //Phi
+    private static BigInteger phi = (p.subtract(BigInteger.ONE)).multiply(q.subtract(BigInteger.ONE));
+
+    //Encryption Exponents
+    private static BigInteger e = generateE(phi);
+
+    //Decryption Exponent
+    private static BigInteger d = e.modInverse(phi);
+
     public static void main(String[] args){
-
-        //Large primes
-        BigInteger p = new BigInteger("19211916981990472618936322908621863986876987146317321175477459636156953561475008733870517275438245830106443145241548501528064000686696553079813968930084003413592173929258239545538559059522893001415540383237712787805857248668921475503029012210091798624401493551321836739170290569343885146402734119714622761918874473987849224658821203492683692059569546468953937059529709368583742816455260753650612502430591087268113652659115398868234585603351162620007030560547611");
-        BigInteger q = new BigInteger("49400957163547757452528775346560420645353827504469813702447095057241998403355821905395551250978714023163401985077729384422721713135644084394023796644398582673187943364713315617271802772949577464712104737208148338528834981720321532125957782517699692081175107563795482281654333294693930543491780359799856300841301804870312412567636723373557700882499622073341225199446003974972311496703259471182056856143760293363135470539860065760306974196552067736902898897585691");
-
-        //Composite modulus
-        BigInteger n = p.multiply(q);
-
-        //Phi
-        BigInteger phi = (p.subtract(BigInteger.ONE)).multiply(q.subtract(BigInteger.ONE));
-
-        //Encryption Exponent
-        BigInteger e = generateE(phi);
-
-        //Decryption Exponent
-        BigInteger d = e.modInverse(phi);
-
         //Public and Private Keys
-        PublicKey publicKey = new PublicKey(e, n);
-        PrivateKey privateKey = new PrivateKey(d, p, q);
+        PublicKey publicKey =  getPublicKey();
+        PrivateKey privateKey = getPrivateKey();
 
         //Encryption
-        String randomMessage = generateRandomMessage(); //Generate random plaintext
+        String randomMessage = generateRandomMessage(100); //Generate random plaintext
         BigInteger message = stringToBigInteger(randomMessage); //Convert plaintext to BigInteger
         BigInteger ciphertext = encrypt(message, publicKey); //Encrypt message to ciphertext
         
@@ -172,12 +178,12 @@ public class RSA {
     /* 
      * Generates a random alphabetic message of length 50 to 100
      */
-    public static String generateRandomMessage(){
+    public static String generateRandomMessage(int length){
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         StringBuilder builder = new StringBuilder();
 
         Random random = new Random();
-        while(builder.length() < (random.nextInt((101-50)) + 50)){
+        while(builder.length() < length){
             int i = (int) (random.nextFloat() * chars.length());
             builder.append(chars.charAt(i));
         }
@@ -211,6 +217,13 @@ public class RSA {
         }
     }
 
+    public static PublicKey getPublicKey() {
+        return new PublicKey(e, n);
+    }
+
+    public static PrivateKey getPrivateKey() {
+        return new PrivateKey(d, p, q);
+    }
 }
 
 
