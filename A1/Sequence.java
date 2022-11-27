@@ -1,3 +1,8 @@
+/* 
+ * Theory Assignment 3b)
+ * Written code used to compute the first 31 bits of the sequence
+ * @author Jeremiah Sabino
+ */
 import java.util.*;
 
 public class Sequence {
