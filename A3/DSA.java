@@ -1,9 +1,9 @@
 import java.util.*;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509CRLSelector;
 
 /*
 p:= 50702342087986984684596540672785294493370824085308498450535565701730450879745310594069460940052367603038103747343106687981163754506284021184158903198888031001641800021787453760919626851704381009545624331468658731255109995186698602388616345118779571212089090418972317301933821327897539692633740906524461904910061687459642285855052275274576089050579224477511686171168825003847462222895619169935317974865296291598100558751976216418469984937110507061979400971905781410388336458908816885758419125375047408388601985300884500733923194700051030733653434466714943605845143519933901592158295809020513235827728686129856549511535000228593790299010401739984240789015389649972633253273119008010971111107028536093543116304613269438082468960788836139999390141570158208410234733780007345264440946888072018632119778442194822690635460883177965078378404035306423001560546174260935441728479454887884057082481520089810271912227350884752023760663
@@ -29,16 +29,18 @@ public class DSA {
         try{
              //1. Key Generation
             System.out.println("----------------------------------------------------------------------------------------------------------------");
-            keyGeneration(p, q, g);
+            BigInteger x = generateNum(q);
+            vKey = generateVKey(p, q, g, x, 1);
+            sKey = generateSKey(p, q, g, x, 1);
 
             //2. Signing 
             System.out.println("----------------------------------------------------------------------------------------------------------------");
             Signature signature;
-            signature = signing(sKey, vKey, m);
+            signature = signing(sKey, vKey, m, 1);
 
              //3. Verification
             System.out.println("----------------------------------------------------------------------------------------------------------------");
-            Verify(vKey, m_hashed, signature);
+            verify(vKey, m_hashed, signature, 1);
         }
         catch(NoSuchAlgorithmException e){
             System.out.println(e.getStackTrace());
@@ -48,28 +50,37 @@ public class DSA {
     
     // DIGITAL SIGNATURE ALGORITHM STEPS
     //1. Key Generation
-    public static void keyGeneration(BigInteger p, BigInteger q, BigInteger g){
+    public static VerificationKey generateVKey(BigInteger p, BigInteger q, BigInteger g, BigInteger x, int print){
         BigInteger h = g.modPow((p.subtract(BigInteger.ONE)).divide(q), p);
-
-        BigInteger x = generateNum(q);
 
         BigInteger y = h.modPow(x, p);
 
         vKey = new VerificationKey(y, h, p, q);
+
+        if(print == 1){
+            System.out.println("Signing:" + 
+            "\nDSA verification key (vk) = (y,h,p,q):" +
+            "\n(y): " + y +
+            "\n(h): " + h +
+            "\n(p): " + p +
+            "\n(q): " + q);
+        }
+    
+        return vKey;
+    }
+    
+    public static SigningKey generateSKey(BigInteger p, BigInteger q, BigInteger g, BigInteger x, int print){
         sKey = new SigningKey(x);
 
-        //Output
-        System.out.println("Signing:" + 
-                                "\nDSA signing key (x): " + x +
-                                "\nDSA verification key (vk) = (y,h,p,q):" +
-                                "\n(y): " + y +
-                                "\n(h): " + h +
-                                "\n(p): " + p +
-                                "\n(q): " + q);
+        if(print == 1){
+            System.out.println("DSA signing key (x): " + x);
+        }
+
+        return sKey;
     }
 
     //2. Signing
-    public static Signature signing(SigningKey sk, VerificationKey vk, String m) throws NoSuchAlgorithmException{
+    public static Signature signing(SigningKey sk, VerificationKey vk, String m, int print) throws NoSuchAlgorithmException{
         //Signing
         BigInteger k = generateNum(vk.q);
 
@@ -89,38 +100,37 @@ public class DSA {
         Signature signature = new Signature(r, s);
 
         //Output
-        System.out.println("Signing: " +
-                            "\n(m_hashed): " + m_hashed +
-                            "\nSecret random number (k): " + k +
-                            "\nMessage to be signed (m): " + m +
-                            "\nSignature (r,s):" + 
-                            "\n(r): " + r +
-                            "\n(s): " + s);
+        if(print == 1){
+            System.out.println("Signing: " +
+            "\nSignature (r,s):" + 
+            "\n(r): " + r +
+            "\n(s): " + s);
+        }
 
         return signature;
     }
 
     //3. Verification
-    public static void Verify(VerificationKey vk, BigInteger m, Signature s){
+    public static void verify(VerificationKey vk, BigInteger m, Signature s, int print){
         //3. Verification  
         BigInteger w = (s.s).modInverse(vk.q);
 
-        BigInteger u1 = (w.multiply(m_hashed)).mod(vk.q); 
+        BigInteger u1 = (w.multiply(m)).mod(vk.q); 
         BigInteger u2 = ((s.r).multiply(w)).mod(vk.q);
         BigInteger hu1 = vk.h.modPow(u1, vk.p);
         BigInteger yu2 = vk.y.modPow(u2, vk.p);
         BigInteger v = ((hu1.multiply(yu2)).mod(vk.p)).mod(vk.q);
 
         //Output
-        String verificationResult = v.equals(s.r) ? "(Signature Accepted)" : "(Signature not Accepted)";
-        System.out.println("Verification:" + 
-                            "\n(w): " + w +
-                            "\n(u1): " + u1 +
-                            "\n(u2): " + u2 +
-                            "\n(v): " + v +
-                            "\nRESULT: " + verificationResult);
-
-       
+        if(print == 1){
+            String verificationResult = v.equals(s.r) ? "(Signature Accepted)" : "(Signature not Accepted)";
+            System.out.println("Verification:" + 
+                                "\n(w): " + w +
+                                "\n(u1): " + u1 +
+                                "\n(u2): " + u2 +
+                                "\n(v): " + v +
+                                "\nRESULT: " + verificationResult);
+        }
     }
 
     // HELPER METHODS --------------------------------------------------------------------------------------------
